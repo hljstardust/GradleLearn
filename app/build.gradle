@@ -1,0 +1,100 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
+    defaultConfig {
+        applicationId "com.autohome.common.gradlelearn"
+        minSdkVersion 16
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs{
+
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "API_URL", "\"http://www.autohome.debug\"")
+        }
+
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField("String", "API_URL", "\"http://www.autohome.release\"")
+        }
+
+        staging.initWith(buildTypes.debug)
+        staging {
+            applicationIdSuffix ".staging"
+            versionNameSuffix "-staging"
+            buildConfigField("String", "API_URL", "\"http://www.autohome.staging\"")
+        }
+    }
+
+    flavorDimensions("color", "price")
+    productFlavors {
+
+        red {
+            dimension "color"
+            applicationId "com.autohome.common.gradlelearn.red"
+            resValue("color", "flavor_color", "#ff0000")
+        }
+
+        blue {
+            dimension "color"
+            applicationId "com.autohome.common.gradlelearn.blue"
+            resValue("color", "flavor_color", "#0000ff")
+        }
+
+        free {
+            dimension "price"
+            applicationId "com.autohome.common.gradlelearn.free"
+        }
+
+        paid {
+            dimension "price"
+            applicationId "com.autohome.common.gradlelearn.paid"
+        }
+
+
+    }
+
+
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    compile project(':javalib')
+    compile project(':androidlibrary')
+    compile 'com.android.support:appcompat-v7:26.+'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    testCompile 'junit:junit:4.12'
+    stagingCompile 'com.google.code.gson:gson:2.2.4'
+    compile project(path: ':backend', configuration: 'android-endpoints')
+}
+//尝试过滤含blue 和 release的variant
+android.variantFilter { variant ->
+    if (variant.buildType.name.equals('release')) {
+        variant.getFlavors().each() { flavor ->
+            if (flavor.name.equals('blue')) {
+                variant.setIgnore(true);
+            }
+
+        }
+    }
+}
+
+
+
+
