@@ -13,7 +13,12 @@ android {
     }
 
     signingConfigs{
-
+        release{
+            storeFile file("../ylq.jks")
+//            storePassword ""
+            keyAlias "ylqkey"
+//            keyPassword ""
+        }
     }
 
     buildTypes {
@@ -27,6 +32,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             buildConfigField("String", "API_URL", "\"http://www.autohome.release\"")
+            signingConfig signingConfigs.release
         }
 
         staging.initWith(buildTypes.debug)
@@ -81,8 +87,57 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.1'
     testCompile 'junit:junit:4.12'
     stagingCompile 'com.google.code.gson:gson:2.2.4'
-    compile project(path: ':backend', configuration: 'android-endpoints')
+//    compile project(path: ':backend', configuration: 'android-endpoints')
 }
+
+task('hello') << {
+    println('hello execution')
+}
+
+hello {
+    println('configuration')
+}
+
+tasks.create(name : 'hello2') {
+    doFirst {
+        println('hello2 execution, not real fist')
+    }
+
+    doFirst {
+        println('hello2 execution, do first')
+    }
+
+    doLast {
+        println('hello2 execution, do last')
+    }
+}
+//hello2.mustRunAfter(hello)
+hello2.dependsOn hello
+
+//动态获取签名密码
+task getReleasePassword << {
+    def password = ''
+    if(rootProject.file('private.properties').exists()){
+        java.util.Properties properties = new Properties()
+        properties.load(rootProject.file('private.properties').newDataInputStream())
+        password = properties.get('release.password')
+    }
+
+    if(!password?.trim()){
+        password = new String(java.lang.System.console().readPassword("\nWhat is the secret password?"))
+    }
+
+    android.signingConfigs.release.storePassword = password;
+    android.signingConfigs.release.keyPassword = password;
+}
+
+tasks.whenTaskAdded { theTask ->
+    if(theTask.name == 'packageRedFreeRelease' || theTask.name == 'packageRedPaidRelease'
+            || theTask.name == 'packageBlueFreeRelease' || theTask.name == 'packageBluePaidRelease'){
+        theTask.dependsOn "getReleasePassword"
+    }
+}
+
 //尝试过滤含blue 和 release的variant
 android.variantFilter { variant ->
     if (variant.buildType.name.equals('release')) {
