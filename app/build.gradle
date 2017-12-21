@@ -95,7 +95,7 @@ task('hello') << {
 }
 
 hello {
-    println('configuration')
+    println('hello configuration')
 }
 
 tasks.create(name : 'hello2') {
@@ -148,6 +148,15 @@ android.variantFilter { variant ->
 
         }
     }
+//修改最终生成的apk文件名
+android.applicationVariants.all { var ->
+    var.outputs.each { output ->
+        def file = output.outputFile
+        println(file.name)
+        output.outputFile = new File(file.parent, "gradlelearn-${var.versionName}.apk")
+    }
+
+}
 }
 
 
