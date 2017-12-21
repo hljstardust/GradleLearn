@@ -43,29 +43,30 @@ android {
         }
     }
 
-    flavorDimensions("color", "price")
+    //设置 flavor维度，及组合使用，顺序决定了组合后资源的优先级
+//    flavorDimensions("color", "price")
     productFlavors {
 
         red {
             dimension "color"
-            applicationId "com.autohome.common.gradlelearn.red"
+//            applicationIdSuffix ".red"
             resValue("color", "flavor_color", "#ff0000")
         }
 
         blue {
             dimension "color"
-            applicationId "com.autohome.common.gradlelearn.blue"
+//            applicationIdSuffix ".blue"
             resValue("color", "flavor_color", "#0000ff")
         }
 
         free {
             dimension "price"
-            applicationId "com.autohome.common.gradlelearn.free"
+//            applicationIdSuffix ".free"
         }
 
         paid {
             dimension "price"
-            applicationId "com.autohome.common.gradlelearn.paid"
+//            applicationIdSuffix ".paid"
         }
 
 
@@ -132,8 +133,8 @@ task getReleasePassword << {
 }
 
 tasks.whenTaskAdded { theTask ->
-    if(theTask.name == 'packageRedFreeRelease' || theTask.name == 'packageRedPaidRelease'
-            || theTask.name == 'packageBlueFreeRelease' || theTask.name == 'packageBluePaidRelease'){
+    if(theTask.name == 'packageRedRelease' || theTask.name == 'packageBlueRelease'
+            || theTask.name == 'packageFreeRelease' || theTask.name == 'packagePaidRelease'){
         theTask.dependsOn "getReleasePassword"
     }
 }
@@ -148,15 +149,43 @@ android.variantFilter { variant ->
 
         }
     }
-//修改最终生成的apk文件名
+}
+
 android.applicationVariants.all { var ->
+    //修改最终生成的apk文件名
     var.outputs.each { output ->
         def file = output.outputFile
         println(file.name)
-        output.outputFile = new File(file.parent, "gradlelearn-${var.versionName}.apk")
+        output.outputFile = new File(file.parent, file.name.replace(".apk", "-${var.versionName}.apk"))
     }
 
-}
+    //自定义task，执行安装并启动MainActivity
+    if(var.install){
+        println("generate runLauncher activity task for variant---->" + var.name)
+        def newTaskName = "run${var.name.capitalize()}"
+//        if(!tasks.findByName(newTaskName)){
+            tasks.create(name:newTaskName, dependsOn: var.install) {
+                description "Installs the ${var.description} and runs the main launcher activity"
+
+                doFirst {
+                    def classpath = var.applicationId
+                    if(var.buildType.applicationIdSuffix){
+                        classpath -= "${var.buildType.applicationIdSuffix}"
+                    }
+
+                    def lanchClass = "${var.applicationId}/${classpath}.MainActivity"
+                    println('lancher activity --->' + lanchClass)
+                    exec {
+                        executable 'adb'
+                        args = ['shell', 'am', 'start', '-n', lanchClass]
+                    }
+                }
+            }
+
+//        }
+    }else{
+        println("not generate runLauncher activity task for variant---->" + var.name)
+    }
 }
 
 
