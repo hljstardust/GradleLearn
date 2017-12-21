@@ -44,29 +44,29 @@ android {
     }
 
     //设置 flavor维度，及组合使用，顺序决定了组合后资源的优先级
-//    flavorDimensions("color", "price")
+    flavorDimensions("color", "price")
     productFlavors {
 
         red {
             dimension "color"
-//            applicationIdSuffix ".red"
+            applicationIdSuffix ".red"
             resValue("color", "flavor_color", "#ff0000")
         }
 
         blue {
             dimension "color"
-//            applicationIdSuffix ".blue"
+            applicationIdSuffix ".blue"
             resValue("color", "flavor_color", "#0000ff")
         }
 
         free {
             dimension "price"
-//            applicationIdSuffix ".free"
+            applicationIdSuffix ".free"
         }
 
         paid {
             dimension "price"
-//            applicationIdSuffix ".paid"
+            applicationIdSuffix ".paid"
         }
 
 
@@ -133,8 +133,8 @@ task getReleasePassword << {
 }
 
 tasks.whenTaskAdded { theTask ->
-    if(theTask.name == 'packageRedRelease' || theTask.name == 'packageBlueRelease'
-            || theTask.name == 'packageFreeRelease' || theTask.name == 'packagePaidRelease'){
+    if(theTask.name == 'packageRedFreeRelease' || theTask.name == 'packageRedPaidRelease'
+            || theTask.name == 'packageBlueFreeRelease' || theTask.name == 'packageBluePaidRelease'){
         theTask.dependsOn "getReleasePassword"
     }
 }
@@ -169,9 +169,16 @@ android.applicationVariants.all { var ->
 
                 doFirst {
                     def classpath = var.applicationId
-                    if(var.buildType.applicationIdSuffix){
-                        classpath -= "${var.buildType.applicationIdSuffix}"
+                    var.getProductFlavors().each() { flavor ->
+                        println('applicationIdSuffix --->' + flavor.applicationIdSuffix)
+                        if(flavor.applicationIdSuffix){
+                            classpath -= "${flavor.applicationIdSuffix}"
+                        }
                     }
+//                    println('applicationIdSuffix --->' + var.buildType.applicationIdSuffix)
+//                    if(var.buildType.applicationIdSuffix){
+//                        classpath -= "${var.buildType.applicationIdSuffix}"
+//                    }
 
                     def lanchClass = "${var.applicationId}/${classpath}.MainActivity"
                     println('lancher activity --->' + lanchClass)
