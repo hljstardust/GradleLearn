@@ -6,7 +6,6 @@ android:
     - android-26
     - extra-android-m2repository
     - extra-android-support
-    - ConstraintLayout for Android 1.0.2, Solver for ConstraintLayout 1.0.2
 
 before_install:
   - chmod +x gradlew
