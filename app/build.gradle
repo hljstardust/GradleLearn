@@ -1,4 +1,19 @@
+
+buildscript {
+    repositories {
+        maven {
+            url uri('../repo')
+        }
+    }
+
+    dependencies {
+        classpath 'com.auto:greeting:1.0.0-SNAPSHOT'
+    }
+}
+
 apply plugin: 'com.android.application'
+//自定义Gradle插件
+apply plugin: 'greeting'
 
 android {
     compileSdkVersion 26
@@ -81,7 +96,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
 
-    compile project(':javalib')
+    compile project(':plugin')
     compile project(':androidlibrary')
     compile 'com.android.support:appcompat-v7:26.+'
 //    compile 'com.android.support.constraint:constraint-layout:1.0.2'
